@@ -6,27 +6,30 @@ using SocketIO;
 public class SocketServerConnection : MonoBehaviour {
 
 	private SocketIOComponent socket;
+	private GameObject user1;
 
 	// Use this for initialization
 	void Start () {
 
+		user1 = GameObject.Find ("user1");
 		GameObject go = GameObject.Find("SocketIO");
 		socket = go.GetComponent<SocketIOComponent>();
 
 		socket.On("open", TestOpen);
 		socket.On("leap-motion", TestLeap);
-		socket.On ("new user", createNewUser);
-		socket.On("gear-head", updateUserPosition);
+		socket.On ("newuser", createNewUser);
+		socket.On("gearhead", updateUserPosition);
 		socket.On("error", TestError);
 		socket.On("close", TestClose);
 	}
 
 	// Update is called once per frame
 	void Update () {
-		Dictionary<string, string> data = new Dictionary<string, string>();
-		data["position"] = Camera.main.transform.position.ToString();
-		data["rotation"] = Camera.main.transform.rotation.ToString();
-		socket.Emit("gear-head", new JSONObject(data));
+		string updateData = System.String.Format ("{{ \"position\": [ {0}, {1}, {2} ], \"rotation\": [ {3}, {4}, {5}, {6} ]}}",
+			                    Camera.main.transform.position.x, Camera.main.transform.position.y, Camera.main.transform.position.z,
+			                    Camera.main.transform.rotation.x, Camera.main.transform.rotation.y, Camera.main.transform.rotation.z, Camera.main.transform.rotation.w);
+		
+		socket.Emit("gearhead", new JSONObject(updateData));
 	}
 
 	public void TestOpen(SocketIOEvent e)
@@ -52,7 +55,9 @@ public class SocketServerConnection : MonoBehaviour {
 	}
 
 	public void updateUserPosition(SocketIOEvent e) {
-		Debug.Log ("[Socket IO] Updated User Position; " + e.data);
+		JSONObject userrot = e.data.GetField ("data").GetField("rotation");
+		Quaternion rot = new Quaternion(userrot [0].f, rot.y = userrot [1].f, rot.z = userrot [2].f, rot.z = userrot [3].f);
+		user1.transform.rotation = rot;
 	}
 
 	public void TestError(SocketIOEvent e)
