@@ -34,7 +34,8 @@ public class SocketServerConnection : MonoBehaviour {
 
 	public void TestOpen(SocketIOEvent e)
 	{
-		Debug.Log("[SocketIO] Open received: " + e.name + " " + e.data);
+		socket.Emit("set-username", new JSONObject("{\"username\": \"" + System.Environment.UserName + "\"}"));
+		Debug.Log("[SocketIO] Open received: " + System.Environment.UserName);
 	}
 
 	public void TestLeap(SocketIOEvent e)
