@@ -316,7 +316,7 @@ namespace SocketIO
 
 		private void OnOpen(object sender, EventArgs e)
 		{
-			//EmitEvent("open");
+			EmitEvent("open");
 		}
 
 		private void OnMessage(object sender, MessageEventArgs e)
