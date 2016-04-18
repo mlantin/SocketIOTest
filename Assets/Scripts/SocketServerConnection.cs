@@ -6,18 +6,21 @@ using SocketIO;
 public class SocketServerConnection : MonoBehaviour {
 
 	private SocketIOComponent socket;
-	private GameObject user1;
+	public GameObject maskPrefab;
+	private GameObject user1 = null;
+	private Quaternion rot = new Quaternion();
 
 	// Use this for initialization
 	void Start () {
 
-		user1 = GameObject.Find ("user1");
+//		user1 = GameObject.Find ("");
 		GameObject go = GameObject.Find("SocketIO");
 		socket = go.GetComponent<SocketIOComponent>();
 
 		socket.On("open", TestOpen);
 		socket.On("leap-motion", TestLeap);
 		socket.On ("newuser", createNewUser);
+		socket.On ("disconnect-user", handleUserLeft); 
 		socket.On("gearhead", updateUserPosition);
 		socket.On("error", TestError);
 		socket.On("close", TestClose);
@@ -38,6 +41,10 @@ public class SocketServerConnection : MonoBehaviour {
 		Debug.Log("[SocketIO] Open received: " + System.Environment.UserName);
 	}
 
+	public void handleUserLeft(SocketIOEvent e) {
+		Debug.Log ("[SocketIO] User " + e.data.GetField ("id") + " left");
+	}
+
 	public void TestLeap(SocketIOEvent e)
 	{
 		Debug.Log("[SocketIO] Leap Motion message received: " + e.name + " " + e.data);
@@ -52,13 +59,16 @@ public class SocketServerConnection : MonoBehaviour {
 	}
 
 	public void createNewUser(SocketIOEvent e) {
+
+		user1 = Instantiate (maskPrefab);
 		Debug.Log ("[Socket IO] New User Connected: " + e.data);
 	}
 
 	public void updateUserPosition(SocketIOEvent e) {
 		JSONObject userrot = e.data.GetField ("data").GetField("rotation");
-		Quaternion rot = new Quaternion(userrot [0].f, rot.y = userrot [1].f, rot.z = userrot [2].f, rot.z = userrot [3].f);
-		user1.transform.rotation = rot;
+		rot.Set(userrot [0].f, userrot [1].f, userrot [2].f, userrot [3].f);
+		if (user1) user1.transform.rotation = rot;
+		//user1.transform.rotation.Set (userrot [0].f, userrot [1].f, userrot [2].f, userrot [3].f);
 	}
 
 	public void TestError(SocketIOEvent e)
