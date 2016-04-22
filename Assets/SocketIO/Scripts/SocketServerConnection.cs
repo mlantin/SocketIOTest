@@ -104,10 +104,20 @@ public class SocketServerConnection : MonoBehaviour {
 		}
 	}
 
+	private int hibit(int x)
+	{
+		int log2Val = -1 ;
+		do {
+			x >>= 1;
+			log2Val++;
+		} while(x != 0);   
+		return 1 << log2Val; 
+	}
+
 	Vector3 getInitialUserPosition(int index) {
 		Vector3 pos = new Vector3 ();
-		pos.x = Mathf.Sin (Mathf.PI / 5.0f * index)*4;
-		pos.z = Mathf.Cos (Mathf.PI / 5.0f * index)*4;
+		pos.x = Mathf.Sin (Mathf.PI / 5.0f)*4;
+		pos.z = Mathf.Cos (Mathf.PI / 5.0f)*4;
 		pos.y = 0;
 		return pos;
 	}
