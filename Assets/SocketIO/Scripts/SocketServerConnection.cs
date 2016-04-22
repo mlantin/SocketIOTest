@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using SocketIO;
 
+
 public class SocketServerConnection : MonoBehaviour {
 
 	public GameObject maskPrefab;
@@ -16,6 +17,12 @@ public class SocketServerConnection : MonoBehaviour {
 	void Start () {
 
 		deviceName = SystemInfo.deviceName;
+		if (deviceName == "<unknown>") {
+			System.DateTime epochStart = new System.DateTime(1970, 1, 1, 0, 0, 0, System.DateTimeKind.Utc);
+			int cur_time = (int)(System.DateTime.UtcNow - epochStart).TotalSeconds;
+			Random.seed = cur_time;
+			deviceName = "IOI-" + Random.Range (1000, 9999).ToString ();
+		}
 		gearhead.keys.Add ("position");
 		gearhead.keys.Add ("rotation");
 		Vector3 pos = new Vector3 ();
@@ -64,8 +71,7 @@ public class SocketServerConnection : MonoBehaviour {
 
 	public void handleUserLeft(SocketIOEvent e) {
 		Debug.Log ("[SocketIO] User " + e.data.GetField ("username") + " left");
-		GameObject usermask;
-		userList.TryGetValue (e.data ["username"].str,out usermask);
+		GameObject usermask = userList[e.data ["username"].str];
 		if (usermask) {
 			userList.Remove (e.data ["username"].str);
 			Destroy (usermask);
@@ -88,21 +94,31 @@ public class SocketServerConnection : MonoBehaviour {
 	public void createUsers(SocketIOEvent e) {
 		int i = 0;
 		foreach (JSONObject userid in e.data["userList"].list) {
-			userList.Add (userid.str, createUser(i));
+			if (userid.str == deviceName) {
+				Vector3 pos = getInitialUserPosition (i);
+				Camera.main.transform.parent.position = pos;
+			} else {
+				userList.Add (userid.str, createUser (i));
+			}
 			i++;
 		}
 	}
 
-	public GameObject createUser(int index) {
+	Vector3 getInitialUserPosition(int index) {
 		Vector3 pos = new Vector3 ();
-		pos.x = Mathf.Sin (Mathf.PI / 5.0f * index)*3;
-		pos.z = Mathf.Cos (Mathf.PI / 5.0f * index)*3;
+		pos.x = Mathf.Sin (Mathf.PI / 5.0f * index)*4;
+		pos.z = Mathf.Cos (Mathf.PI / 5.0f * index)*4;
 		pos.y = 0;
+		return pos;
+	}
+
+	public GameObject createUser(int index) {
+		Vector3 pos = getInitialUserPosition (index);
 		return (GameObject) Instantiate (maskPrefab,pos,Quaternion.LookRotation(-pos));
 	}
 
 	public void createNewUser(SocketIOEvent e) {
-		userList.Add (e.data ["username"].str, createUser(userList.Count));
+		userList.Add (e.data ["username"].str, createUser(userList.Count+1));
 		Debug.Log ("[Socket IO] New User Connected: " + e.data);
 	}
 
@@ -110,7 +126,7 @@ public class SocketServerConnection : MonoBehaviour {
 		JSONObject userrot = e.data.GetField ("data").GetField("rotation");
 		rot.Set(userrot [0].f, userrot [1].f, userrot [2].f, userrot [3].f);
 		GameObject userMask = userList [e.data ["username"].str];
-		if (userMask) userMask.transform.rotation = rot;
+		if (userMask) userMask.transform.GetChild(0).rotation = rot;
 		//user1.transform.rotation.Set (userrot [0].f, userrot [1].f, userrot [2].f, userrot [3].f);
 	}
 
