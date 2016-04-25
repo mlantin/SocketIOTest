@@ -16,12 +16,12 @@ public class SocketServerConnection : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
 
-		deviceName = SystemInfo.deviceName;
+		deviceName = SystemInfo.deviceUniqueIdentifier;
 		if (deviceName == "<unknown>") {
 			System.DateTime epochStart = new System.DateTime(1970, 1, 1, 0, 0, 0, System.DateTimeKind.Utc);
 			int cur_time = (int)(System.DateTime.UtcNow - epochStart).TotalSeconds;
 			Random.seed = cur_time;
-			deviceName = "IOI-" + Random.Range (1000, 9999).ToString ();
+			deviceName = "IOI-6" + Random.Range (10000, 99999).ToString ();
 		}
 		gearhead.keys.Add ("position");
 		gearhead.keys.Add ("rotation");
@@ -104,24 +104,6 @@ public class SocketServerConnection : MonoBehaviour {
 		}
 	}
 
-	private int hibit(int x)
-	{
-		int log2Val = -1 ;
-		do {
-			x >>= 1;
-			log2Val++;
-		} while(x != 0);   
-		return 1 << log2Val; 
-	}
-
-	Vector3 getInitialUserPosition(int index) {
-		Vector3 pos = new Vector3 ();
-		pos.x = Mathf.Sin (Mathf.PI / 5.0f)*4;
-		pos.z = Mathf.Cos (Mathf.PI / 5.0f)*4;
-		pos.y = 0;
-		return pos;
-	}
-
 	public GameObject createUser(int index) {
 		Vector3 pos = getInitialUserPosition (index);
 		return (GameObject) Instantiate (maskPrefab,pos,Quaternion.LookRotation(-pos));
@@ -130,6 +112,24 @@ public class SocketServerConnection : MonoBehaviour {
 	public void createNewUser(SocketIOEvent e) {
 		userList.Add (e.data ["username"].str, createUser(userList.Count+1));
 		Debug.Log ("[Socket IO] New User Connected: " + e.data);
+	}
+
+	Vector3 getInitialUserPosition(int index) {
+		Vector3 pos = new Vector3 ();
+		pos.x = Mathf.Sin (Mathf.PI / 5.0f * index)*4;
+		pos.z = Mathf.Cos (Mathf.PI / 5.0f * index)*4;
+		pos.y = 0;
+		return pos;
+	}
+
+	private int hibit(int x)
+	{
+		int log2Val = -1 ;
+		do {
+			x >>= 1;
+			log2Val++;
+		} while(x != 0);   
+		return 1 << log2Val; 
 	}
 
 	public void updateUserPosition(SocketIOEvent e) {
