@@ -7,6 +7,7 @@ using SocketIO;
 public class SocketServerConnection : MonoBehaviour {
 
 	public GameObject maskPrefab;
+	public GameObject testobj;
 	private Dictionary<string,GameObject> userList = new Dictionary<string,GameObject>();
 	private SocketIOComponent socket;
 	private JSONObject gearhead = new JSONObject (JSONObject.Type.OBJECT);
@@ -40,6 +41,7 @@ public class SocketServerConnection : MonoBehaviour {
 		socket.On("gearhead", updateUserPosition);
 		socket.On("error", TestError);
 		socket.On("close", TestClose);
+		socket.On ("obj", useMocapData);
 	}
 
 	// Update is called once per frame
@@ -60,6 +62,11 @@ public class SocketServerConnection : MonoBehaviour {
 		//socket.Emit("gearhead", new JSONObject(updateData));
 		socket.Emit("gearhead", gearhead);
 
+	}
+
+	public void useMocapData(SocketIOEvent e) {
+		Debug.Log ("got mocap" + e.data[1].f);
+		testobj.transform.position.Set (e.data [1].f, e.data [2].f, e.data [3].f);
 	}
 
 	public void TestOpen(SocketIOEvent e)
